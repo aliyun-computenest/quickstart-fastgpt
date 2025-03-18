@@ -178,11 +178,19 @@ Resources:
       CommandContent:
         Fn::Sub:
           - |
-            sleep 10
-          - RegionId:
-              Ref: ALIYUN::Region
+            cd /root/fastgpt
+            sed -i 's/^\([[:space:]]*\)- DEFAULT_ROOT_PSW=1234/\1-DEFAULT_ROOT_PSW=${PSD}/g' docker-compose.yml
+            docker compose down
+            docker compose up -d
+            sleep 30
+          - PSD:
+              Fn::Select:
+                - 0
+                - Fn::Split:
+                    - '-'
+                    - Ref: ALIYUN::StackId
 Outputs:
-  FastGPT Server Address:
+  FastGPT地址:
     Description:
       zh-cn: fastgpt应用入口
       en: FastGPT Addresses
@@ -195,6 +203,20 @@ Outputs:
             - Fn::GetAtt:
               - InstanceGroup
               - PublicIps
+  初始用户名:
+    Description:
+      zh-cn: 初始用户名
+    Value: root
+  初始密码:
+    NoEcho: true
+    Description:
+      zh-cn: 初始密码
+    Value:
+      Fn::Select:
+        - 0
+        - Fn::Split:
+            - '-'
+            - Ref: ALIYUN::StackId
 Metadata:
   ALIYUN::ROS::Interface:
     ParameterGroups:

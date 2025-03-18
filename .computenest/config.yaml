@@ -74,5 +74,5 @@ ImageBuilder:
         mkdir -p /root/fastgpt && cd /root/fastgpt
         curl -O https://raw.githubusercontent.com/labring/FastGPT/main/projects/app/data/config.json
         curl -o docker-compose.yml https://raw.githubusercontent.com/labring/FastGPT/main/deploy/docker/docker-compose-pgvector.yml
-        docker-compose up -d
-        sleep 240
+        docker compose up -d
+        sleep 120
