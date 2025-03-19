@@ -36,4 +36,4 @@ FastGPT社区版在计算巢部署的费用主要涉及：
    ![image.png](3.jpg)
 
 # 使用说明
-更多用法请参考FastGptP[官网文档](https://doc.tryfastgpt.ai/docs/intro/)。
+更多用法请参考FastGpt[官网文档](https://doc.tryfastgpt.ai/docs/intro/)。
