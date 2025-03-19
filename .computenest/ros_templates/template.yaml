@@ -1,5 +1,118 @@
 ROSTemplateFormatVersion: '2015-09-01'
+Conditions:
+  CreateVpcConditions:
+    Fn::Equals:
+      - NewVPC
+      - Ref: VpcOption
 Parameters:
+  VpcOption:
+    Type: String
+    AllowedValues:
+      - NewVPC
+      - ExistingVPC
+    AssociationPropertyMetadata:
+      ValueLabelMapping:
+        NewVPC:
+          zh-cn: 新建专有网络
+          en: New VPC
+        ExistingVPC:
+          zh-cn: 已有专有网络
+          en: Existing VPC
+    Label:
+      en: Select Existing or New VPC
+      zh-cn: 选择已有/新建的专有网络
+    Required: true
+    Default: NewVPC
+  VpcCidrBlock:
+    Type: String
+    Label:
+      en: VPC CIDR IPv4 Block
+      zh-cn: 专有网络IPv4网段
+    Description:
+      zh-cn: VPC的ip地址段范围，<br>您可以使用以下的ip地址段或其子网:<br><font color='green'>[10.0.0.0/8]</font><br><font color='green'>[172.16.0.0/12]</font><br><font color='green'>[192.168.0.0/16]</font>
+      en: 'The ip address range of the VPC in the CidrBlock form; <br>You can use the following ip address ranges and their subnets: <br><font color=''green''>[10.0.0.0/8]</font><br><font color=''green''>[172.16.0.0/12]</font><br><font color=''green''>[192.168.0.0/16]</font>'
+    Default: 192.168.0.0/16
+    Required:
+      Fn::Equals:
+        - NewVPC
+        - ${VpcOption}
+    AssociationProperty: ALIYUN::VPC::VPC::CidrBlock
+    AssociationPropertyMetadata:
+      Visible:
+        Condition:
+          Fn::Equals:
+            - NewVPC
+            - ${VpcOption}
+  VSwitchCidrBlock:
+    Type: String
+    Label:
+      en: VSwitch CIDR Block
+      zh-cn: 交换机子网网段
+    Description:
+      zh-cn: 必须属于VPC的子网段。
+      en: Must belong to the subnet segment of VPC.
+    Default: 192.168.1.0/24
+    Required:
+      Fn::Equals:
+        - NewVPC
+        - ${VpcOption}
+    AssociationProperty: ALIYUN::VPC::VSwitch::CidrBlock
+    AssociationPropertyMetadata:
+      VpcCidrBlock: VpcCidrBlock
+      Visible:
+        Condition:
+          Fn::Equals:
+            - NewVPC
+            - ${VpcOption}
+  ZoneId:
+    Type: String
+    Label:
+      en: Zone ID
+      zh-cn: 可用区ID
+    AssociationProperty: ALIYUN::ECS::Instance::ZoneId
+    AssociationPropertyMetadata:
+      DefaultValueStrategy: random
+      InstanceChargeType: ${PayType}
+      SystemDiskCategory: cloud_essd
+      InstanceType: ${EcsInstanceType}
+  VpcId:
+    Type: String
+    Label:
+      en: VPC ID
+      zh-cn: 专有网络VPC实例ID
+    AssociationProperty: 'ALIYUN::ECS::VPC::VPCId'
+    Required:
+      Fn::Equals:
+        - ExistingVPC
+        - ${VpcOption}
+    Default: ''
+    AssociationPropertyMetadata:
+      AutoSelectFirst: true
+      Visible:
+        Condition:
+          Fn::Equals:
+            - ExistingVPC
+            - ${VpcOption}
+  VSwitchId:
+    Type: String
+    Label:
+      en: VSwitch ID
+      zh-cn: 交换机实例ID
+    Default: ''
+    AssociationProperty: 'ALIYUN::ECS::VSwitch::VSwitchId'
+    Required:
+      Fn::Equals:
+        - ExistingVPC
+        - ${VpcOption}
+    AssociationPropertyMetadata:
+      AutoSelectFirst: true
+      VpcId: ${VpcId}
+      ZoneId: ${ZoneId}
+      Visible:
+        Condition:
+          Fn::Equals:
+            - ExistingVPC
+            - ${VpcOption}
   PayType:
     Type: String
     Label:
@@ -101,36 +214,49 @@ Parameters:
     MinLength: 8
     MaxLength: 30
     AssociationProperty: ALIYUN::ECS::Instance::Password
-  ZoneId:
+  ServerPassword:
+    NoEcho: true
     Type: String
+    Description:
+      en: Server login password, Length 8-30, must contain three(Capital letters, lowercase letters, numbers, ()`~!@#$%^&*_-+=|{}[]:;'<>,.?/ Special symbol in)
+      zh-cn: 服务登录密码,长度8-30，必须包含三项（大写字母、小写字母、数字、 ()`~!@#$%^&*_-+=|{}[]:;'<>,.?/ 中的特殊符号）
+    AllowedPattern: '^[a-zA-Z0-9-\(\)\`\~\!\@\#\$\%\^\&\*\_\-\+\=\|\{\}\[\]\:\;\<\>\,\.\?\/]*$'
     Label:
-      en: Zone ID
-      zh-cn: 可用区ID
-    AssociationProperty: ALIYUN::ECS::Instance::ZoneId
-  VpcId:
-    Type: String
-    Label:
-      en: VPC ID
-      zh-cn: 专有网络VPC实例ID
-    AssociationProperty: 'ALIYUN::ECS::VPC::VPCId'
-  VSwitchId:
-    Type: String
-    Label:
-      en: VSwitch ID
-      zh-cn: 交换机实例ID
-    Default: ''
-    AssociationProperty: 'ALIYUN::ECS::VSwitch::VSwitchId'
-    AssociationPropertyMetadata:
-      VpcId: VpcId
-      ZoneId: ZoneId
+      en: Server Password
+      zh-cn: 服务登录密码
 Resources:
+  # 新建vpc
+  EcsVpc:
+    Type: ALIYUN::ECS::VPC
+    Condition: CreateVpcConditions
+    Properties:
+      VpcName:
+        Ref: ALIYUN::StackName
+      CidrBlock:
+        Ref: VpcCidrBlock
+  # 新建vswitch
+  EcsVSwitch:
+    Condition: CreateVpcConditions
+    Type: ALIYUN::ECS::VSwitch
+    Properties:
+      VSwitchName:
+        Ref: ALIYUN::StackName
+      VpcId:
+        Ref: EcsVpc
+      ZoneId:
+        Ref: ZoneId
+      CidrBlock:
+        Ref: VSwitchCidrBlock
   SecurityGroup:
     Type: ALIYUN::ECS::SecurityGroup
     Properties:
       SecurityGroupName:
         Ref: ALIYUN::StackName
       VpcId:
-        Ref: VpcId
+        Fn::If:
+          - CreateVpcConditions
+          - Ref: EcsVpc
+          - Ref: VpcId
       SecurityGroupIngress:
         - PortRange: 3000/3000
           Priority: 1
@@ -148,9 +274,15 @@ Resources:
       Period:
         Ref: PayPeriod
       VpcId:
-        Ref: VpcId
+        Fn::If:
+          - CreateVpcConditions
+          - Ref: EcsVpc
+          - Ref: VpcId
       VSwitchId:
-        Ref: VSwitchId
+        Fn::If:
+          - CreateVpcConditions
+          - Ref: EcsVSwitch
+          - Ref: VSwitchId
       ZoneId:
         Ref: ZoneId
       SecurityGroupId:
@@ -179,24 +311,20 @@ Resources:
         Fn::Sub:
           - |
             cd /root/fastgpt
-            sed -i 's/^\([[:space:]]*\)- DEFAULT_ROOT_PSW=1234/\1-DEFAULT_ROOT_PSW=${PSD}/g' docker-compose.yml
+            sed -i 's/^\([[:space:]]*\)- DEFAULT_ROOT_PSW=1234/\1- DEFAULT_ROOT_PSW=${PSW}/g' docker-compose.yml
             docker compose down
             docker compose up -d
             sleep 30
-          - PSD:
-              Fn::Select:
-                - 0
-                - Fn::Split:
-                    - '-'
-                    - Ref: ALIYUN::StackId
+          - PSW:
+              Ref: ServerPassword
 Outputs:
-  FastGPT地址:
+  FastGPT服务地址:
     Description:
-      zh-cn: fastgpt应用入口
-      en: FastGPT Addresses
+      zh-cn: FastGPT服务地址
+      en: FastGPT Server Addresses
     Value:
       Fn::Sub:
-        - 'http://${ServerAddress}/3000'
+        - 'http://${ServerAddress}:3000'
         - ServerAddress:
             Fn::Select:
             - 0
@@ -207,16 +335,12 @@ Outputs:
     Description:
       zh-cn: 初始用户名
     Value: root
-  初始密码:
+  服务登录密码:
     NoEcho: true
     Description:
-      zh-cn: 初始密码
+      zh-cn: 服务登录密码
     Value:
-      Fn::Select:
-        - 0
-        - Fn::Split:
-            - '-'
-            - Ref: ALIYUN::StackId
+      Ref: ServerPassword
 Metadata:
   ALIYUN::ROS::Interface:
     ParameterGroups:
@@ -232,9 +356,16 @@ Metadata:
         Label:
           default: 资源配置
       - Parameters:
+          - ServerPassword
+        Label:
+          default: 服务配置
+      - Parameters:
           - ZoneId
+          - VpcOption
           - VpcId
           - VSwitchId
+          - VpcCidrBlock
+          - VSwitchCidrBlock
         Label:
           default: 可用区配置
       
