@@ -35,5 +35,17 @@ FastGPT社区版在计算巢部署的费用主要涉及：
 5. 加载完成后即可登录使用FastGPT服务。
    ![image.png](3.jpg)
 
+6. 选择模型：
+   ![image.png](4.png)
+
+7. 配置模型的请求地址和APIKey：
+   ![image.png](5.png)
+   请求地址为：https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+
+8. 保存后点击启用并测试：
+   ![image.png](6.png)
+
+9. 测试成功后即可正常使用模型。
+
 # 使用说明
 更多用法请参考FastGpt[官网文档](https://doc.tryfastgpt.ai/docs/intro/)。
