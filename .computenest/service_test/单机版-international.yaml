@@ -1,0 +1,11 @@
+templateName: 单机版
+regionId: ap-southeast-1
+parameters:
+  VpcCidrBlock: "192.168.0.0/16"
+  VpcOption: "NewVPC"
+  ServerPassword: "Please fill in"
+  PayType: "PostPaid"
+  EcsInstanceType: "$[iact3-auto]"
+  VSwitchCidrBlock: "192.168.1.0/24"
+  InstancePassword: "$[iact3-auto]"
+caseId: stc-d14eda13a7bc48edb857

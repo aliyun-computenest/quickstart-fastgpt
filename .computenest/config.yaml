@@ -10,12 +10,26 @@ Service:
           ArtifactId: ${Artifact.EcsImage.ArtifactId}
           ArtifactVersion: ${Artifact.EcsImage.ArtifactVersion}
     TemplateConfigs:
-      - Name: 单机版
-        Url: 'ros_templates/template.yaml'
+    - Name: 单机版
+      Url: 'ros_templates/template.yaml'
   ServiceType: private
   ServiceInfo:
-    Locale: zh-CN
-    ShortDescription: fastgpt deploy
+  - Locale: zh-CN
+    Name: FastGPT社区版
+    ShortDescription: "FastGPT 是一个基于 LLM 大语言模型的知识库问答系统，提供开箱即用的数据处理、模型调用等能力。同时可以通过
+      Flow 可视化进行工作流编排，从而实现复杂的问答场景！\n"
+    Image: 
+      https://service-info-public.oss-cn-hangzhou.aliyuncs.com/5141674772595072/service-image/b94811d2-6496-464c-b7b1-fa6d02457aa4.jpg
+    Softwares: []
+  - Locale: en-US
+    Name: FastGPT CE
+    ShortDescription: FastGPT is a knowledge-based question-answering system based
+      on the Large Language Model (LLM). It provides out-of-the-box data processing
+      and model invocation capabilities. It also allows workflow orchestration through
+      Flow visualization, enabling complex question-answering scenarios.
+    Image: 
+      https://service-info-public.oss-cn-hangzhou.aliyuncs.com/5141674772595072/service-image/b94811d2-6496-464c-b7b1-fa6d02457aa4.jpg
+    Softwares: []
 Artifact:
   EcsImage:
     ArtifactType: EcsImage
@@ -33,46 +47,46 @@ ImageBuilder:
     InternetMaxBandwidthOut: 10
     CommandType: RunShellScript
     Timeout: 10800
-    Tags: [ ]
+    Tags: []
     CommandContent: |-
-        #!/bin/bash
+      #!/bin/bash
 
-        # 安装docker-ce
-        yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
-        yum makecache
-        yum install -y curl git docker-ce
-        mkdir -p /etc/docker/
+      # 安装docker-ce
+      yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+      yum makecache
+      yum install -y curl git docker-ce
+      mkdir -p /etc/docker/
+      echo '{
+          "default-address-pools": [
+              {
+                  "base": "10.255.0.0/16",
+                  "size": 24
+              }
+          ]
+      }' > /etc/docker/daemon.json
+
+      prefixChinaRegion="cn-"
+      region=$(curl -s http://100.100.100.200/latest/meta-data/region-id)
+
+      if [[ ${region} == ${prefixChinaRegion}* && ${region} != "cn-hongkong" ]]; then
         echo '{
             "default-address-pools": [
                 {
                     "base": "10.255.0.0/16",
                     "size": 24
                 }
+            ],
+            "registry-mirrors": [
+                "https://mirrors-ssl.aliyuncs.com/"
             ]
         }' > /etc/docker/daemon.json
+      fi
 
-        prefixChinaRegion="cn-"
-        region=$(curl -s http://100.100.100.200/latest/meta-data/region-id)
+      sudo systemctl enable --now docker.socket
+      sudo systemctl enable --now docker.service
 
-        if [[ ${region} == ${prefixChinaRegion}* && ${region} != "cn-hongkong" ]]; then
-          echo '{
-              "default-address-pools": [
-                  {
-                      "base": "10.255.0.0/16",
-                      "size": 24
-                  }
-              ],
-              "registry-mirrors": [
-                  "https://mirrors-ssl.aliyuncs.com/"
-              ]
-          }' > /etc/docker/daemon.json
-        fi
-
-        sudo systemctl enable --now docker.socket
-        sudo systemctl enable --now docker.service
-
-        mkdir -p /root/fastgpt && cd /root/fastgpt
-        curl -O https://raw.githubusercontent.com/labring/FastGPT/main/projects/app/data/config.json
-        curl -o docker-compose.yml https://raw.githubusercontent.com/labring/FastGPT/main/deploy/docker/docker-compose-pgvector.yml
-        docker compose up -d
-        sleep 120
+      mkdir -p /root/fastgpt && cd /root/fastgpt
+      curl -O https://raw.githubusercontent.com/labring/FastGPT/main/projects/app/data/config.json
+      curl -o docker-compose.yml https://raw.githubusercontent.com/labring/FastGPT/main/deploy/docker/docker-compose-pgvector.yml
+      docker compose up -d
+      sleep 120
