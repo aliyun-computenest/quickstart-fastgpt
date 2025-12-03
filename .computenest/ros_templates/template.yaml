@@ -311,7 +311,7 @@ Resources:
         Fn::Sub:
           - |
             cd /root/fastgpt
-            sed -i 's/^\([[:space:]]*\)- DEFAULT_ROOT_PSW=1234/\1- DEFAULT_ROOT_PSW=${PSW}/g' docker-compose.yml
+            sed -i 's/^\([[:space:]]*\)DEFAULT_ROOT_PSW: 1234/\1DEFAULT_ROOT_PSW: ${PSW}/g' docker-compose.yml
             docker compose down
             docker compose up -d
             sleep 30
