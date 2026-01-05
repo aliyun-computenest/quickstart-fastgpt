@@ -20,13 +20,16 @@ Service:
       Flow 可视化进行工作流编排，从而实现复杂的问答场景！\n"
     Image: 
       https://service-info-public.oss-cn-hangzhou.aliyuncs.com/5141674772595072/service-image/b94811d2-6496-464c-b7b1-fa6d02457aa4.jpg
-    Softwares: []
+    Softwares:
+    - Name: FastGPT
+      Version: v4.14.4-cve
   - Locale: en-US
     Name: FastGPT CE
-    ShortDescription: FastGPT is a knowledge-based question-answering system based
-      on the Large Language Model (LLM). It provides out-of-the-box data processing
-      and model invocation capabilities. It also allows workflow orchestration through
-      Flow visualization, enabling complex question-answering scenarios.
+    ShortDescription: FastGPT is a knowledge-based question-answering system 
+      based on the Large Language Model (LLM). It provides out-of-the-box data 
+      processing and model invocation capabilities. It also allows workflow 
+      orchestration through Flow visualization, enabling complex 
+      question-answering scenarios.
     Image: 
       https://service-info-public.oss-cn-hangzhou.aliyuncs.com/5141674772595072/service-image/b94811d2-6496-464c-b7b1-fa6d02457aa4.jpg
     Softwares: []
@@ -86,7 +89,7 @@ ImageBuilder:
       sudo systemctl enable --now docker.service
 
       mkdir -p /root/fastgpt && cd /root/fastgpt
-      
+
       # 使用FastGPT官方部署脚本（支持国内镜像）- 非交互式自动确认
       yes | bash <(curl -fsSL https://doc.fastgpt.cn/deploy/install.sh) --region=cn --vector=pg
       docker compose up -d
